@@ -1,0 +1,23 @@
+/* body{
+    background: linear-gradient(red, blue);
+    transition: background 5s ease;
+}
+
+body:hover{
+    background: linear-gradient(orange, white, green);
+} */
+
+body{
+    background-color: black;
+}
+
+button{
+    padding: 20;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+    border-radius: 10px;
+}
+
+button:hover{
+    box-shadow: 0 0 2px 2px white;
+}

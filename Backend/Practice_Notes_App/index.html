@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script>
+            async function getTodos(){
+                const response = await axios.get("http://localhost:3000/notes", {
+                    headers: {
+                        token: localStorage.getItem("token")
+                    }
+                })
+                const notes = response.data.notes
+                console.log(notes);
+
+                document.getElementById("notes").innerHTML = "";
+
+                for(let i = 0 ; i<notes.length ; i++){
+                    const newNote = document.createElement("div");
+                    newNote.setAttribute("style", "border: 3px solid black")
+                    newNote.innerHTML = notes[i].note;
+                    document.getElementById("notes").appendChild(newNote);
+                }
+            }
+
+            async function addTodo(){
+                const content = document.getElementById("userNote").value;
+                if(content == ""){
+                    alert("Note cannot be empty");
+                    return;
+                }
+                console.log("Content: " + content);
+                const response = await axios.post("http://localhost:3000/notes", 
+                    {
+                        note: document.getElementById("userNote").value
+                    },
+                    {
+                        headers: {
+                            token: localStorage.getItem("token")
+                        }
+                    }
+                )
+                document.getElementById("userNote").value = "";
+                getTodos();
+            }
+    
+            getTodos()
+        </script>
+        <title>Notes App</title>
+    </head>
+    <body>
+        <div style="display: flex; justify-content: space-evenly;">
+            <div id="notes">
+                Loading...
+            </div>
+    
+            <div>
+                <input type="text" id="userNote"/>
+                <button onclick="addTodo()">Create todo</button>
+            </div>
+        </div>
+        
+    </body>
+</html>

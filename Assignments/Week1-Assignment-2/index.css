@@ -1,0 +1,32 @@
+.wrapper{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+}
+
+.left-div{
+    background-color: black;
+    color: white;
+    flex: 1;
+}
+
+.right-div{
+    background-color: white;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.heading{
+    font-size: 2rem;
+    font-weight: 300;
+}
+
+.right-heading-div{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-height: 1.5rem;
+    margin-bottom: 5rem;
+}
