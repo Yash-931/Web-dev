@@ -1,8 +1,9 @@
-const express = require("express");
-const app = express();
+import express from 'express'
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
 import 'dotenv/config'
+import jwt from 'jsonwebtoken';
+const bcrypt = require('bcrypt')
 
 const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL
@@ -12,6 +13,8 @@ const client = new PrismaClient({
     adapter: adapter
 });
 
+
+const app = express();
 app.use(express.json());
 
 // --- In-memory state ---
@@ -31,18 +34,80 @@ const ORDERBOOK = {
 };
 
 // --- Auth ---
-app.post("/signup", (req, res) => {
-  // const { username, password } = req.body;
-  // 1. check username not taken
-  // 2. hash password (bcrypt/argon2)
-  // 3. push to USERS
-  // 4. init BALANCES[userId] with INR: { available: 0, locked: 0 }
+app.post("/signup", async (req, res) => {
+
+    // const { username, password } = req.body;
+    const username = req.body.username;
+    const password = req.body.password;
+    
+    // 1. check username not taken
+    const user = await client.user.findFirst({
+        where: {
+            username: username
+        }
+    })
+
+    if(user) {
+        res.json({
+            message: "Username already exists"
+        })
+        return;
+    }
+
+    // 2. hash password (bcrypt/argon2)
+    const hash = await bcrypt.hash(password, 10);
+
+    // 3. push to USERS
+    const newUser = await client.user.create({
+        data: {
+            username: username,
+            password: hash
+        }
+    })
+
+    // 4. init BALANCES[userId] with INR: { available: 0, locked: 0 }
+    BALANCES[newUser.id] = {
+        "INR": {
+            available: 0,
+            locked: 0
+        }
+    }
+    res.status(201).json({
+        message: "Signup success",
+        newUser
+    })
 });
 
-app.post("/login", (req, res) => {
-  // 1. find user by username
-  // 2. compare hashed password
-  // 3. return JWT / session token
+app.post("/login", async (req, res) => {
+    // 1. find user by username
+    const username = req.body.username;
+    const password = req.body.password;
+
+    const user = await client.user.findFirst({
+        where: {
+            username: username,
+        }
+    });
+
+    // 2. compare hashed password
+    const isMatch = bcrypt.compare(password, user?.password);
+
+    if(!isMatch){
+        res.status(401).json({
+            message: "Incorrect credentials"
+        })
+        return;
+    }
+
+    // 3. return JWT / session token
+    const token = jwt.sign({
+        username
+    }, "secret1234");
+
+    res.status(200).json({
+        message: "Sigin success",
+        token: token
+    })
 });
 
 // --- Orders ---
