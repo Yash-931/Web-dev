@@ -101,8 +101,8 @@ app.post("/login", async (req, res) => {
 
     // 3. return JWT / session token
     const token = jwt.sign({
-        username
-    }, "secret1234");
+        username: username,
+    }, process.env.JWT_SECRET);
 
     res.status(200).json({
         message: "Sigin success",
