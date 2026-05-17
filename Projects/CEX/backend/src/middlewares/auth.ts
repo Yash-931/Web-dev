@@ -20,7 +20,7 @@ async function authMiddleware(req, res, next) {
         return;
     }
 
-    req.username = decodedToken.username;
+    req.userId = decodedToken.userId;
     next();
 }
 

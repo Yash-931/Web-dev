@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
 import 'dotenv/config'
 import jwt from 'jsonwebtoken';
+import authMiddleware from './middlewares/auth';
 const bcrypt = require('bcrypt')
 
 const adapter = new PrismaPg({
@@ -28,9 +29,9 @@ const ORDERS = [];
 const FILLS = [];
 const BALANCES = {}; // { userId: { INR: {available, locked}, AXIS: {available, locked}, ... } }
 const ORDERBOOK = {
-  AXIS: { bids: {}, asks: {} },
-  HDFC: { bids: {}, asks: {} },
-  TATA: { bids: {}, asks: {} },
+  AXIS: { bids: [], asks: [] },
+  HDFC: { bids: [], asks: [] },
+  TATA: { bids: [], asks: [] },
 };
 
 // --- Auth ---
@@ -89,6 +90,13 @@ app.post("/login", async (req, res) => {
         }
     });
 
+    if(!user){
+        res.json({
+            message: "User doesn't exist. Please signup";
+        })
+        return;
+    }
+
     // 2. compare hashed password
     const isMatch = bcrypt.compare(password, user?.password);
 
@@ -101,8 +109,9 @@ app.post("/login", async (req, res) => {
 
     // 3. return JWT / session token
     const token = jwt.sign({
-        username: username,
-    }, process.env.JWT_SECRET);
+        userId: user?.id,
+        username: username
+    },process.env.JWT_SECRET);
 
     res.status(200).json({
         message: "Sigin success",
@@ -111,14 +120,99 @@ app.post("/login", async (req, res) => {
 });
 
 // --- Orders ---
-app.post("/order", (req, res) => {
-  // body: { userId, side: "BUY"|"SELL", type: "LIMIT"|"MARKET", symbol, price?, qty }
-  // 1. validate input + stock exists
-  // 2. check + lock balance (INR for BUY, stock for SELL)
-  // 3. run matching engine against opposite side of ORDERBOOK
-  // 4. write fills to FILLS, update filledQty + status on ORDERS
-  // 5. if leftover qty and LIMIT, rest on book; if MARKET, cancel remainder
-  // 6. settle balances on each fill (move locked -> other asset's available)
+app.post("/order", authMiddleware, async (req, res) => {
+    // body: { userId, side: "BUY"|"SELL", type: "LIMIT"|"MARKET", symbol, price?, qty }
+    const userId = req.userId;
+    const side: "BUY"|"SELL" = req.body.side;
+    const type: "LIMIT"|"MARKET" = req.body.type;
+    const symbol = req.body.symbol;
+    const price = req.body.price;
+    let qty = req.body.quantity;
+
+    // 1. validate input + stock exists
+    if(type == 'LIMIT' && !price){
+        res.json({
+            message: "Please enter the price for a limit order"
+        })
+        return;
+    }
+
+    const stockDB = await client.stock.findFirst({
+        where: {
+            symbol: symbol
+        }
+    })
+
+    if(!stockDB){
+        res.json({
+            message: "Stock doesn't exist"
+        })
+        return;
+    }
+
+    // 2. check + lock balance (INR for BUY, stock for SELL)
+    if(side == "BUY"){
+        if(BALANCES[userId].INR.available >= price*qty){
+            //elgible to buy so lock this balance
+            BALANCES[userId].INR.available -= price*qty;
+            BALANCES[userId].INR.locked += price*qty;
+        } else{
+            res.json({
+                message: "Insufficient balance"
+            })
+            return;
+        }
+    }
+
+    if(side == "SELL"){
+        if(BALANCES[userId].symbol.available >= qty){
+            BALANCES[userId].symbol.available -= qty;
+            BALANCES[userId].symbol.locked += qty;
+        } else{
+            res.json({
+                message: "Insufficient number of stocks. Cannot sell"
+            })
+            return;
+        }
+    }
+    
+    // 3. run matching engine against opposite side of ORDERBOOK
+    if(side == "SELL"){
+        const bids = ORDERBOOK[symbol].bids
+        for(let i = 0 ; i<bids.length && qty > 0 ; i++){
+            let bidPrice = bids[i].price;
+            let bidQty = bids[i].quantity;
+
+            if(type == "LIMIT"){
+                if(bidPrice >= price){
+                    //sell to this
+                    if(bidQty > qty){
+                        bidQty -= qty;
+                        qty = 0;
+                    } else{
+                        qty -= bidQty;
+                        bidQty = 0;
+                        //how to mark status here
+                        // --> remove the resting order from orderbook if it got completed
+                        // --> update in the DB -> the status of the resting order 
+                    }
+                }
+            } else {
+                if(bidQty > qty){
+                    bidQty -= qty;
+                    qty = 0;
+                } else{
+                    qty -= bidQty;
+                    bidQty = 0;
+                }
+            }
+        }
+    }
+
+
+    // 4. write fills to FILLS, update filledQty + status on ORDERS
+    // 5. if leftover qty and LIMIT, rest on book; if MARKET, cancel remainder
+    // 6. settle balances on each fill (move locked -> other asset's available)
 });
 
 app.delete("/order/:orderId", (req, res) => {
