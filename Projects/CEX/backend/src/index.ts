@@ -222,9 +222,21 @@ app.delete("/order/:orderId", (req, res) => {
   // 4. mark status = CANCELLED
 });
 
-app.get("/orders", (req, res) => {
+app.get("/orders", authMiddleware, async (req, res) => {
+    const userId = req.userId;
+    const user = client.user.findFirst({
+        where: {
+            id: userId
+        }
+    })
+    await client.order.findMany({
+        where: {
+            user: user
+        }
+    })
   // query: ?status=OPEN  (or all)
   // return current user's orders
+
 });
 
 // --- Market data ---
