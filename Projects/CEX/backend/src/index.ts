@@ -223,6 +223,7 @@ app.delete("/order/:orderId", (req, res) => {
 });
 
 app.get("/orders", authMiddleware, async (req, res) => {
+    //add query params here (MISSING right now)
     const userId = req.userId;
     const user = client.user.findFirst({
         where: {
