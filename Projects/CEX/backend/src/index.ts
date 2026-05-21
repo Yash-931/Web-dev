@@ -150,66 +150,8 @@ app.post("/order", authMiddleware, async (req, res) => {
         return;
     }
 
-    // 2. check + lock balance (INR for BUY, stock for SELL)
-    if(side == "BUY"){
-        if(BALANCES[userId].INR.available >= price*qty){
-            //elgible to buy so lock this balance
-            BALANCES[userId].INR.available -= price*qty;
-            BALANCES[userId].INR.locked += price*qty;
-        } else{
-            res.json({
-                message: "Insufficient balance"
-            })
-            return;
-        }
-    }
-
-    if(side == "SELL"){
-        if(BALANCES[userId].symbol.available >= qty){
-            BALANCES[userId].symbol.available -= qty;
-            BALANCES[userId].symbol.locked += qty;
-        } else{
-            res.json({
-                message: "Insufficient number of stocks. Cannot sell"
-            })
-            return;
-        }
-    }
-    
+    // 2. check + lock balance (INR for BUY, stock for SELL)    
     // 3. run matching engine against opposite side of ORDERBOOK
-    if(side == "SELL"){
-        const bids = ORDERBOOK[symbol].bids
-        for(let i = 0 ; i<bids.length && qty > 0 ; i++){
-            let bidPrice = bids[i].price;
-            let bidQty = bids[i].quantity;
-
-            if(type == "LIMIT"){
-                if(bidPrice >= price){
-                    //sell to this
-                    if(bidQty > qty){
-                        bidQty -= qty;
-                        qty = 0;
-                    } else{
-                        qty -= bidQty;
-                        bidQty = 0;
-                        //how to mark status here
-                        // --> remove the resting order from orderbook if it got completed
-                        // --> update in the DB -> the status of the resting order 
-                    }
-                }
-            } else {
-                if(bidQty > qty){
-                    bidQty -= qty;
-                    qty = 0;
-                } else{
-                    qty -= bidQty;
-                    bidQty = 0;
-                }
-            }
-        }
-    }
-
-
     // 4. write fills to FILLS, update filledQty + status on ORDERS
     // 5. if leftover qty and LIMIT, rest on book; if MARKET, cancel remainder
     // 6. settle balances on each fill (move locked -> other asset's available)
