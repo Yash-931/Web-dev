@@ -142,7 +142,7 @@ app.post("/order", authMiddleware, async (req, res) => {
             symbol: symbol
         }
     })
-
+    
     if(!stockDB){
         res.json({
             message: "Stock doesn't exist"
@@ -150,7 +150,7 @@ app.post("/order", authMiddleware, async (req, res) => {
         return;
     }
 
-    // 2. check + lock balance (INR for BUY, stock for SELL)    
+    // 2. check + lock balance (INR for BUY, stock for SELL)
     // 3. run matching engine against opposite side of ORDERBOOK
     // 4. write fills to FILLS, update filledQty + status on ORDERS
     // 5. if leftover qty and LIMIT, rest on book; if MARKET, cancel remainder
