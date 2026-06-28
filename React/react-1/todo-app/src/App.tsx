@@ -2,21 +2,21 @@
 
 function App() {
 
-  let posts  = [
+  const posts  = [
     {
       "name": "yash",
       "content": "Learning react 1"
     },
     {
-      "name": "yash2",
+      "name": "kunal",
       "content": "Learning react 1"
     },
     {
-      "name": "yash3",
+      "name": "gautam",
       "content": "Learning react 1"
     },
     {
-      "name": "yash3",
+      "name": "shivam",
       "content": "Learning react 1"
     },
   ]
