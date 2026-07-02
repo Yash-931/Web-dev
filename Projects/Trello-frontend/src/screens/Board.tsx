@@ -1,51 +1,93 @@
+import { useState } from "react";
 import { Appbar } from "../components/Appbar";
+import { BoardsSection } from "../components/BoardsSection";
 import { Card } from "../components/Card";
 
 export function Board() {
+  const [pendingTasks, setPendingTasks] = useState([
+    {
+      id: "1",
+      title: "Node to bun migration",
+      description:
+        "We have been trying this for a while now but it not working out as expected",
+    },
+  ]);
+
+  const [onGoingTasks, setOnGoingTasks] = useState([
+    {
+      id: "2",
+      title: "PBS to temporal migration",
+      description:
+        "We have been trying this for a while now but it not working out as expected",
+    },
+  ]);
+
+  const [completedTasks, setCompletedTasks] = useState([
+    {
+      id: "3",
+      title: "PHP to FAST API migration",
+      description:
+        "We have been trying this for a while now but it not working out as expected",
+    },
+    {
+      id: "4",
+      title: "Perl to python migration",
+      description:
+        "We have been trying this for a while now but it not working out as expected",
+    },
+  ]);
+
   return (
     <div>
       <Appbar />
 
       <div style={{ display: "flex", padding: 10 }}>
-        <div
-          style={{
-            flex: 1,
-            borderRight: "1px dotted black",
-            minHeight: "80vh ",
+        <BoardsSection
+          onDrop={(item) => {
+            setPendingTasks((p) => p.filter((x) => x.id !== item.id));
+            setOnGoingTasks((p) => p.filter((x) => x.id !== item.id));
+            setCompletedTasks((p) => p.filter((x) => x.id !== item.id));
+            setPendingTasks((p) => [...p, item]);
           }}
         >
-          <Card
-            title="Node to bun migration"
-            description="We have been trying this for a while now but it not working out as expected"
-          />
+          {pendingTasks.map((task) => (
+            <Card
+              title={task.title}
+              description={task.description}
+              id={task.id}
+            />
+          ))}
+        </BoardsSection>
 
-          <Card
-            title="PBS to temporal migration"
-            description="We have been trying this for a while now but it not working out as expected"
-          />
+        <BoardsSection onDrop={(item) => {
+            setPendingTasks((p) => p.filter((x) => x.id !== item.id));
+            setOnGoingTasks((p) => p.filter((x) => x.id !== item.id));
+            setCompletedTasks((p) => p.filter((x) => x.id !== item.id));
+            setOnGoingTasks((p) => [...p, item]);
+          }}>
+          {onGoingTasks.map((task) => (
+            <Card
+              title={task.title}
+              description={task.description}
+              id={task.id}
+            />
+          ))}
+        </BoardsSection>
 
-          <Card
-            title="PHP to FAST API migration"
-            description="We have been trying this for a while now but it not working out as expected"
-          />
-        </div>
-
-        <div
-          style={{
-            flex: 1,
-            borderRight: "1px dotted black",
-            minHeight: "80vh ",
-          }}
-        >
-          <Card
-            title="Perl to python migration"
-            description="We have been trying this for a while now but it not working out as expected"
-          />
-        </div>
-
-        <div style={{ flex: 1, minHeight: "80vh " }}>
-          
-        </div>
+        <BoardsSection onDrop={(item) => {
+            setPendingTasks((p) => p.filter((x) => x.id !== item.id));
+            setOnGoingTasks((p) => p.filter((x) => x.id !== item.id));
+            setCompletedTasks((p) => p.filter((x) => x.id !== item.id));
+            setCompletedTasks((p) => [...p, item]);
+          }}>
+          {completedTasks.map((task) => (
+            <Card
+              title={task.title}
+              description={task.description}
+              id={task.id}
+            />
+          ))}
+        </BoardsSection>
       </div>
     </div>
   );

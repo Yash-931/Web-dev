@@ -1,10 +1,10 @@
 import { useDrag } from "react-dnd";
 
-export function Card({ title, description }) {
+export function Card({ title, description, id }) {
   const [{ opacity }, dragRef] = useDrag(
     () => ({
       type: "card",
-      item: { title, description },
+      item: { id, title, description },
       collect: (monitor) => ({
         opacity: monitor.isDragging() ? 0.5 : 1,
       }),
