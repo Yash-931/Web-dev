@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User{
+  id              Int           @id       @default(autoincrement())
+  username        String        @unique
+  password        String
+  orders          Order[]      
+}
+
+model Order{
+  id                Int         @id       @default(autoincrement())
+  userId            Int
+  market            String
+  price             Int
+  quantity          Int
+  Type              String
+  stockId           Int
+  side              String
+  status            String
+  filledQty         Int
+  user              User        @relation(fields: [userId], references: [id])
+  buyOrderFill      Fill[]      @relation(name: "buyOrder")
+  sellOrderFill     Fill[]      @relation(name: "sellOrder")
+}
+
+model Fill{
+  id            Int     @id     @default(autoincrement())
+  stockId       Int     
+  price         Int
+  quantity      Int
+  buyOrderId    Int   
+  sellOrderId   Int
+  sellOrder     Order   @relation(name: "sellOrder", fields: [sellOrderId], references: [id])
+  buyOrder      Order   @relation(name: "buyOrder", fields: [buyOrderId], references: [id])
+}
+
+model Stock{
+  id        Int       @id       @default(autoincrement())
+  title     String
+  symbol    String
+}
