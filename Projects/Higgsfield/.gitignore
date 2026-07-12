@@ -15,6 +15,10 @@ node_modules
 # Testing
 coverage
 
+assets/*
+*.png
+*.mp4
+
 # Turbo
 .turbo
 
