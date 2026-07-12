@@ -3,6 +3,7 @@ import { prisma } from "./db";
 import { CreateAvatatSchema, CreateUserSchema } from "./types";
 import { createImage } from "./image";
 import { uuid } from "uuidv4";
+import { generateVideo } from "./video";
 
 const app = express();
 
@@ -80,5 +81,9 @@ app.post("/api/v1/avatar", async (req, res) => {
       .json({ error: error.message || "Image generation failed." });
   }
 });
+
+app.post("/api/v1/video", async (req, res) => {
+    generateVideo("Generate a video with this man dancing on a beach on a nice rainy and windy evening", )
+})
 
 app.listen(3000);

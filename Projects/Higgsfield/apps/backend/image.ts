@@ -8,7 +8,7 @@ const ai = new GoogleGenAI({
   location: "us-central1",
 });
 
-async function fetchImageAsInlineData(url: string) {
+export async function fetchImageAsInlineData(url: string) {
   try {
     const response = await fetch(url);
     if (!response.ok)
