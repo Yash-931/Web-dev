@@ -4,6 +4,7 @@ import { CreateAvatatSchema, CreateUserSchema } from "./types";
 import { createImage } from "./image";
 import { uuid } from "uuidv4";
 import { generateVideo } from "./video";
+import { success } from "zod";
 
 const app = express();
 
@@ -65,7 +66,6 @@ app.post("/api/v1/avatar", async (req, res) => {
       ),
     ]);
 
-
     // TODOS left:
     //1. Store the images in a object store like S3
     //2. Store the URLs of the generated images in the database
@@ -83,7 +83,26 @@ app.post("/api/v1/avatar", async (req, res) => {
 });
 
 app.post("/api/v1/video", async (req, res) => {
-    generateVideo("Generate a video with this man dancing on a beach on a nice rainy and windy evening", )
-})
+  try {
+    await generateVideo(
+      "A medium shot of the subject in the reference images walking down a bustling street at dusk. The camera tracks their movement smoothly. The individual maintains the exact facial shape, expression tendencies, and appearance from the reference photos. Soft ambient city lights, highly detailed, continuous identity.",
+      [
+        "https://github.com/Yash-931/Web-dev/blob/99fd2c1296d5c1f4c3f82c437e19039bc4080761/Projects/Higgsfield/apps/backend/assets/01d271e0-a4a7-409b-a486-792be9c5eaa7/avatar-1783834797137.png?raw=true",
+        "https://raw.githubusercontent.com/Yash-931/Web-dev/99fd2c1296d5c1f4c3f82c437e19039bc4080761/Projects/Higgsfield/apps/backend/assets/7d271e34-8cf9-493e-ad66-71a4d406cd0d/avatar-1783834797026.png",
+        "https://raw.githubusercontent.com/Yash-931/Web-dev/99fd2c1296d5c1f4c3f82c437e19039bc4080761/Projects/Higgsfield/apps/backend/assets/ea86ac07-317b-43ba-becd-0658fc4d02ee/avatar-1783834797169.png",
+      ],
+      "./assets/video/kiratDance.mp4",
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Video generation success"
+    })
+  } catch (e) {
+    res.status(400).json({
+        error: e
+    })
+  }
+});
 
 app.listen(3000);
