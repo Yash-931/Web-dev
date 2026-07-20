@@ -1,14 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APITester } from "./APITester";
 import "./index.css";
-
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
+import { Button } from "./components/ui/button";
 
 export function App() {
   return (
-    <div className="bg-black text-white">
-      Hi there
+    <div>
+      <Button variant={"outline"}>Submit form</Button>
     </div>
   );
 }
